@@ -56,7 +56,6 @@ void buttonRepeatISR()
 		{
 			leftButtonActive = 1;
 			leftButtonPressed = 4; 
-			Serial.println("left");
 		}
 		leftButtonPressed--;
 	}
@@ -66,7 +65,6 @@ void buttonRepeatISR()
 		{
 			middleButtonActive = 1;
 			middleButtonPressed = 4; 
-			Serial.println("right");
 		}
 		middleButtonPressed--;
 	}
