@@ -2,14 +2,14 @@
 // Renders the first page - Status informations
 void statusPage()
 {
-	if (!digitalRead(LEFT_BUTTON))
+	/*if (!digitalRead(LEFT_BUTTON))
 	{
 		setNewTemperature(setTemperature + 10);
 	}
 	if (!digitalRead(MIDDLE_BUTTON))
 	{
 		setNewTemperature(setTemperature - 10);
-	}
+	}*/
 
 	display.clearDisplay();
 

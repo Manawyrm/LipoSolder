@@ -20,6 +20,7 @@ http://tbspace.de
 #include <max6675.h>
 #include <EEPROM.h>
 #include <EnableInterrupt.h>
+#include <TimerOne.h>
 
 #define LEFT_BUTTON		7
 #define MIDDLE_BUTTON	6
@@ -35,9 +36,11 @@ http://tbspace.de
 
 #define USING_WRONG_THERMOCOUPLE 1
 
+#define SERIAL_BAUDRATE 115200
+
 #define IS_NAN(x) (((x) < 0) == ((x) >= 0))
 
-double setTemperature 		= 20;
+double setTemperature 		= 0;
 double currentTemperature 	= 25;
 double outputDutyCycle 		= 0;
 
@@ -50,18 +53,24 @@ double Kp=2, Ki=5, Kd=1;
 
 volatile uint8_t currentPage = 0;
 
-volatile uint8_t leftButtonPressed = 0;
-volatile uint8_t middleButtonPressed = 0;
-volatile uint8_t rightButtonPressed = 0;
-
+volatile uint8_t leftButtonPressed = 255;
+volatile uint8_t middleButtonPressed = 255;
+volatile uint8_t rightButtonPressed = 255;
 
 // sizeof(pages) / sizeof(void*)
 void statusPage();
 void presetPage();
 void statusPageButton();
 void presetPageButton();
-void (*pages[])(void) = { statusPage, presetPage };
+
 void (*pagesBtnISR[])(void) = { statusPageButton, presetPageButton };
+void (*pages[])(void) = { statusPage, presetPage };
+
+void leftButtonChanged();
+void middleButtonChanged();
+void rightButtonChanged();
+
+void buttonRepeatISR();
 
 PID heaterPID(&currentTemperature, &outputDutyCycle, &setTemperature, Kp, Ki, Kd, DIRECT);
 MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
@@ -73,7 +82,7 @@ void setup()
 	wdt_disable();
 
 	// Debug: Initialize serial console
-	Serial.begin(9600);
+	Serial.begin(SERIAL_BAUDRATE);
 
 	// Configure header output - n-channel MOSFET, needs to be pulled low
 	pinMode(HEATER_PIN, OUTPUT);
@@ -87,13 +96,6 @@ void setup()
 	pinMode(RIGHT_BUTTON, INPUT);
 	digitalWrite(RIGHT_BUTTON, HIGH);
 
-/*	enableInterrupt(LEFT_BUTTON, leftButtonRising, RISING);
-	enableInterrupt(MIDDLE_BUTTON, middleButtonRising, RISING);
-	enableInterrupt(RIGHT_BUTTON, rightButtonRising, RISING);
-	enableInterrupt(LEFT_BUTTON, leftButtonFalling, FALLING);
-	enableInterrupt(MIDDLE_BUTTON, middleButtonFalling, FALLING);
-	enableInterrupt(RIGHT_BUTTON, rightButtonFalling, FALLING);
-*/
 	// Change ADC voltage reference to 1.1V to get a stable reading from 
 	// the voltage divider (to measure the battery voltage)
 	analogReference(INTERNAL);
@@ -114,8 +116,18 @@ void setup()
 
 	wdt_enable(WDTO_8S);
 	wdt_reset();
+
+	enableInterrupt(LEFT_BUTTON, leftButtonChanged, CHANGE);
+	enableInterrupt(MIDDLE_BUTTON, middleButtonChanged, CHANGE);
+	enableInterrupt(RIGHT_BUTTON, rightButtonChanged, CHANGE);
+
+	Timer1.initialize(100000);
+	Timer1.attachInterrupt( buttonRepeatISR );
+
 	// enable PID controller (enables heating element!)
 	heaterPID.SetMode(AUTOMATIC);
+
+	wdt_reset();
 }
 
 void loop()
@@ -154,38 +166,7 @@ void loop()
 		tripLowVoltage();
 	}
 
-	if (!digitalRead(RIGHT_BUTTON))
-	{
-		rightButtonPressed = 1;
-	}
-	if (digitalRead(RIGHT_BUTTON))
-	{
-		if (rightButtonPressed == 1)
-		{
-			rightButtonPressed = 0;
-			currentPage += 1;
-			if (currentPage >= sizeof(pages) / sizeof(void*))
-				currentPage = 0;
-		}
-	}
-
 	pages[currentPage]();
 }
 
-
-float getBatteryVoltage()
-{
-	return map(analogRead(BATTERY_PIN), 0, 970, 0, 1600) / 100.0f;
-
-	uint16_t voltage = 0;
-	
-	for(int i=0; i<5; i++)
-	{
-	    voltage += analogRead(BATTERY_PIN);
-	    delay(10);
-	}
-
-	voltage = voltage / 5;
-	return map(voltage, 0, 970, 0, 1600) / 100.0f;
-}
 

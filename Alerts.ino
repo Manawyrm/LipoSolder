@@ -1,6 +1,11 @@
 void tripThermocoupleAlert()
 {
-	// Locks processor when undervoltage occurs. 
+	Timer1.detachInterrupt();
+	disableInterrupt(LEFT_BUTTON);
+	disableInterrupt(MIDDLE_BUTTON);
+	disableInterrupt(RIGHT_BUTTON);
+
+	// Locks processor when a thermocouple error occurs. 
 	display.clearDisplay();
 	display.setCursor(0, 0);
 	display.setTextSize(2);
@@ -36,6 +41,11 @@ void tripThermocoupleAlert()
 }
 void tripLowVoltage()
 {
+	Timer1.detachInterrupt();
+	disableInterrupt(LEFT_BUTTON);
+	disableInterrupt(MIDDLE_BUTTON);
+	disableInterrupt(RIGHT_BUTTON);
+
 	// Locks processor when undervoltage occurs. 
 	display.clearDisplay();
 	display.setCursor(0, 0);
