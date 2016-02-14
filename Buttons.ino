@@ -1,13 +1,3 @@
-void statusPageButton()
-{
-
-}
-
-void presetPageButton()
-{
-
-}
-
 void changePageButton()
 {
 	currentPage += 1;

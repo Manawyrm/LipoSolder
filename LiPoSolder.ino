@@ -57,13 +57,13 @@ volatile uint8_t leftButtonPressed = 255;
 volatile uint8_t middleButtonPressed = 255;
 volatile uint8_t rightButtonPressed = 255;
 
+volatile uint8_t leftButtonActive = 0;
+volatile uint8_t middleButtonActive = 0;
+
 // sizeof(pages) / sizeof(void*)
 void statusPage();
 void presetPage();
-void statusPageButton();
-void presetPageButton();
 
-void (*pagesBtnISR[])(void) = { statusPageButton, presetPageButton };
 void (*pages[])(void) = { statusPage, presetPage };
 
 void leftButtonChanged();

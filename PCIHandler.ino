@@ -54,8 +54,9 @@ void buttonRepeatISR()
 	{
 		if (leftButtonPressed % 10 == 1)
 		{
-			leftButtonAction();
+			leftButtonActive = 1;
 			leftButtonPressed = 4; 
+			Serial.println("left");
 		}
 		leftButtonPressed--;
 	}
@@ -63,7 +64,9 @@ void buttonRepeatISR()
 	{
 		if (middleButtonPressed % 10 == 1)
 		{
+			middleButtonActive = 1;
 			middleButtonPressed = 4; 
+			Serial.println("right");
 		}
 		middleButtonPressed--;
 	}
@@ -71,14 +74,11 @@ void buttonRepeatISR()
 	{
 		if (rightButtonPressed % 10 == 1)
 		{
+			leftButtonActive = 0;
+			middleButtonActive = 0;
 			changePageButton();
 			rightButtonPressed = 4; 
 		}
 		rightButtonPressed--;
 	}
-}
-
-void leftButtonAction()
-{
-	Serial.println("left!");
 }

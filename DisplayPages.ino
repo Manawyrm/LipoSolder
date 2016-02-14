@@ -2,14 +2,16 @@
 // Renders the first page - Status informations
 void statusPage()
 {
-	/*if (!digitalRead(LEFT_BUTTON))
+	if (leftButtonActive)
 	{
 		setNewTemperature(setTemperature + 10);
+		leftButtonActive = 0;
 	}
-	if (!digitalRead(MIDDLE_BUTTON))
+	if (middleButtonActive)
 	{
 		setNewTemperature(setTemperature - 10);
-	}*/
+		middleButtonActive = 0;
+	}
 
 	display.clearDisplay();
 
@@ -51,14 +53,70 @@ void statusPage()
 
 	display.display();
 }
+
+uint8_t currentPreset = 0; 
+uint16_t presets[4] = {20, 320, 360, 420};
+
 void presetPage()
 {
+	if (!leftButtonActive || !middleButtonActive)
+	{
+		if (leftButtonActive)
+		{
+			currentPreset++; 
+			if (currentPreset > sizeof(presets) / sizeof(uint16_t) - 1)
+				currentPreset = 0; 
+
+			leftButtonActive = 0;
+		}
+		if (middleButtonActive)
+		{
+			if (currentPreset != 0)
+			{
+				currentPreset--;
+			}
+			else
+			{
+				currentPreset = sizeof(presets) / sizeof(uint16_t) - 1;
+			}
+			middleButtonActive = 0;
+		}
+	}
+	else
+	{
+		setNewTemperature(presets[currentPreset]);
+		leftButtonActive = 0;
+		middleButtonActive = 0;
+		currentPage = 0;
+		return; 
+	}
 	display.clearDisplay();
 
-	renderHeader(1);
+	renderHeader(0);
 
-	display.setCursor(0,20);
+	display.setTextColor(BLACK, WHITE);
+	display.setCursor(0,0);
 	display.setTextSize(1);
-	display.println(F("I will make my own renderer with blackjack and hookers."));
+	display.println(F(" Presets"));
+	display.setTextColor(WHITE);
+
+	for(int i=0; i<sizeof(presets) / sizeof(uint16_t); i++)
+	{
+		display.setCursor(0, 15 + (i * 10));
+	    if (i == currentPreset)
+	    {
+	    	clearLine(1);
+	    }
+	    else
+	    {
+	    	clearLine(0);
+	    }
+	    display.setCursor(0, 15 + (i * 10));
+	    display.print(F("   "));
+
+	   	printIntWithLeadingZeroes(presets[i], 3);
+	   	display.write(0xF7);display.println("C");
+	}
+
 	display.display();
 }
